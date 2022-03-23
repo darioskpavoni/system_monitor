@@ -4,9 +4,9 @@
     "description": "A system monitor app for Windows and Linux",
     "main": "index.js",
     "scripts": {
-        "build": "tsc",
-        "start": "nodemon ./dist/server/hub/main.js",
-        "start-node": "nodemon ./dist/server/client/main.js",
+        "build": "rm -rf ./dist && tsc",
+        "start": "nodemon ./dist/server/main.js",
+        "start-node": "nodemon ./dist/client/main.js",
         "serve": "npx parcel serve ./src/server/hub/index.html",
         "watch": "npx tsc --watch"
     },
