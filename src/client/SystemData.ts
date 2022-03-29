@@ -1,20 +1,12 @@
-// Obtain constant flow of data about CPU, RAM and DISK
+// Obtain constant flow of data about CPU, RAM and DISK from System.ts and send it to hub
 
 import { System } from "./System";
 
-export class SystemData extends System {
-    private getData_ID: any;
-    private TIMER_GETDATA = 1000;
+export const TIMER = 1000;
 
+export class SystemData extends System {
     constructor() {
         super();
         console.log("System class constructor has been called...");
-        this.getCPU();
-    }
-
-    private getCPU() {
-        /* this.getData_ID = setInterval(() => {
-            console.log(os.cpus());
-        }, this.TIMER_GETDATA); */
     }
 }

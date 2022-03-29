@@ -14,14 +14,12 @@ const io = new Server(server, {
 });
 
 app.get("/", (req, res) => {
-    res.sendFile(path.join(__dirname, "/index.html"));
+    res.sendFile(path.join(__dirname, "../../static/index.html"));
 });
 
-
-io.on('connection', (socket) => {
+io.on("connection", (socket) => {
     console.log(`SERVER: User connected ${socket.id}`);
-})
-
+});
 
 server.listen(3001, "0.0.0.0", () => {
     console.log("Listening to port: 3001");
