@@ -32,8 +32,9 @@ export class System {
     }
 
     private initialize() {
-        this.initializeSystemData();
-        this.getDataFlow();
+        // this.initializeSystemData();
+        /* this.getDataFlow(); */
+        this.getDiskData();
     }
 
     // Get initial data about CPU
@@ -92,6 +93,26 @@ export class System {
             _getRAMData();
             setTimeout(repeat, timer);
         }, timer);
+    }
+
+    private getDiskData() {
+        const _diskData = execSync("df -h", {
+            shell: "C:\\Windows\\System32\\bash.exe",
+        })
+            .toString()
+            .trim();
+
+        let _diskPartitionsLines = _diskData.split(/\r?\n/);
+        let _diskPartitions = [];
+        for (const item of _diskPartitionsLines) {
+            if (_diskPartitionsLines.indexOf(item) === 0) {
+                continue;
+            }
+            let diskPartLine = item.replace(/\s\s+/g, " ");
+            let diskPartItems = diskPartLine.split(" ");
+            _diskPartitions.push(diskPartItems);
+        }
+        console.log(_diskPartitions);
     }
 
     private initializeCPUData() {
