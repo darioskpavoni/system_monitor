@@ -1,12 +1,15 @@
 // Initialize system data (OS, CPU name, model, total RAM etc.)
 
 import os from "os";
+import osUtils from "node-os-utils";
 import { ICPUData, IRAMData } from "./ISystemData";
 import { TIMER } from "./SystemData";
 import { execSync } from "child_process";
 export class System {
     private os: NodeJS.Platform;
     private ramTimer: NodeJS.Timer;
+    private cpuTimer: NodeJS.Timer;
+
     private cpuData: ICPUData = {
         producer: "",
         fullName: "",
@@ -22,6 +25,8 @@ export class System {
         usedPercentage: 0,
     };
 
+    private cpuUsage: number = 0;
+
     constructor() {
         this.initialize();
     }
@@ -31,11 +36,7 @@ export class System {
         this.getDataFlow();
     }
 
-    private getDataFlow() {
-        this.getRAMData(TIMER);
-    }
-
-    // Get current OS
+    // Get initial data about CPU
     private initializeSystemData() {
         this.os = process.platform;
         console.log(`Current OS: ${this.os}`);
@@ -43,7 +44,27 @@ export class System {
         this.initializeCPUData();
     }
 
-    private getRAMData(interval?: number) {
+    private getDataFlow() {
+        this.getCPUData(TIMER);
+        this.getRAMData(TIMER);
+    }
+
+    private getCPUData(timer?: number) {
+        const _getCPUData = () => {
+            const cpu = osUtils.cpu;
+            cpu.usage().then((percentage) => {
+                this.cpuUsage = percentage;
+                console.log(`[CPU] ${this.cpuUsage}%`);
+            });
+        };
+
+        this.cpuTimer = setTimeout(function repeat() {
+            _getCPUData();
+            setTimeout(repeat, timer);
+        }, timer);
+    }
+
+    private getRAMData(timer?: number) {
         const _getRAMData = () => {
             // RAM values in GB
             this.ramData.free = parseFloat(
@@ -69,13 +90,12 @@ export class System {
 
         this.ramTimer = setTimeout(function repeat() {
             _getRAMData();
-            setTimeout(repeat, interval);
-        }, interval);
+            setTimeout(repeat, timer);
+        }, timer);
     }
 
     private initializeCPUData() {
         // CPU model name and data about each logical core
-        // todo: use this to retrieve constant data about each core frequency
         const cpuModel = os.cpus();
 
         // CPU Producer
