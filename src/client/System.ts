@@ -2,13 +2,14 @@
 
 import os from "os";
 import osUtils from "node-os-utils";
-import { ICPUData, IRAMData } from "./ISystemData";
+import { ICPUData, IPartitionData, IRAMData } from "./ISystemData";
 import { TIMER } from "./SystemData";
 import { execSync } from "child_process";
 export class System {
     private os: NodeJS.Platform;
     private ramTimer: NodeJS.Timer;
     private cpuTimer: NodeJS.Timer;
+    private partitionTimer: NodeJS.Timer;
 
     private cpuData: ICPUData = {
         producer: "",
@@ -17,6 +18,7 @@ export class System {
         physicalCores: 0,
         logicalCores: 0,
     };
+    private cpuUsage: number = 0;
     private ramData: IRAMData = {
         free: 0,
         total: 0,
@@ -24,17 +26,15 @@ export class System {
         freePercentage: 0,
         usedPercentage: 0,
     };
-
-    private cpuUsage: number = 0;
+    private partitions: IPartitionData[] = [];
 
     constructor() {
         this.initialize();
     }
 
     private initialize() {
-        // this.initializeSystemData();
-        /* this.getDataFlow(); */
-        this.getDiskData();
+        this.initializeSystemData();
+        this.getDataFlow();
     }
 
     // Get initial data about CPU
@@ -48,6 +48,7 @@ export class System {
     private getDataFlow() {
         this.getCPUData(TIMER);
         this.getRAMData(TIMER);
+        this.getDiskData(TIMER * 5);
     }
 
     private getCPUData(timer?: number) {
@@ -74,7 +75,9 @@ export class System {
             this.ramData.total = parseFloat(
                 (os.totalmem() / 1073741824).toFixed()
             );
-            this.ramData.used = this.ramData.total - this.ramData.free;
+            this.ramData.used = parseFloat(
+                (this.ramData.total - this.ramData.free).toFixed(2)
+            );
 
             // RAM values in %
             this.ramData.freePercentage = parseFloat(
@@ -95,24 +98,75 @@ export class System {
         }, timer);
     }
 
-    private getDiskData() {
-        const _diskData = execSync("df -h", {
-            shell: "C:\\Windows\\System32\\bash.exe",
-        })
-            .toString()
-            .trim();
+    private getDiskData(timer?: number) {
+        const _getPartitionData = () => {
+            if (this.os === "win32") {
+                // -h → Print sizes in human readable format (in powers of 1024)
+                const _diskData = execSync("df -h").toString().trim();
 
-        let _diskPartitionsLines = _diskData.split(/\r?\n/);
-        let _diskPartitions = [];
-        for (const item of _diskPartitionsLines) {
-            if (_diskPartitionsLines.indexOf(item) === 0) {
-                continue;
+                let _diskPartitionsLines = _diskData.split(/\r?\n/);
+                let _diskPartitions = [];
+                for (const item of _diskPartitionsLines) {
+                    if (_diskPartitionsLines.indexOf(item) === 0) {
+                        // skip first row (table header)
+                        continue;
+                    }
+
+                    // split items by spaces
+                    let diskPartItems = item.split(/\s\s+/);
+                    _diskPartitions.push(diskPartItems);
+                }
+
+                for (const item of _diskPartitions) {
+                    // matching string until first slash and assuming there is always a match (!)
+                    let partitionLabel = item[0].match(/^[^\/]*/)![0];
+                    let partitionTotal = parseFloat(item[1].replace("G", ""));
+                    let partitionUsed = parseFloat(item[2].replace("G", ""));
+                    let partitionFree = parseFloat(item[3].replace("G", ""));
+                    let partitionUsedPercentage = parseFloat(
+                        parseFloat(item[4].replace("%", "")).toFixed(2)
+                    ); // remove %;
+                    let partitionFreePercentage = parseFloat(
+                        (100 - partitionUsedPercentage).toFixed(2)
+                    );
+
+                    // partition filtering (keep only partitions with letter labels, ex. C:\)
+                    if (partitionLabel.indexOf(`:`) === -1) {
+                        continue;
+                    }
+
+                    // processing of data
+                    let obj = {
+                        label: partitionLabel,
+                        free: partitionFree,
+                        total: partitionTotal,
+                        used: partitionUsed,
+                        freePercentage: partitionFreePercentage,
+                        usedPercentage: partitionUsedPercentage,
+                    };
+
+                    // Update partition obj if already existing, else push it
+                    let partitionMatch = false;
+                    for (const i in this.partitions) {
+                        if (this.partitions[i].label === obj.label) {
+                            partitionMatch = true;
+                            this.partitions[i] = obj;
+                            break;
+                        }
+                    }
+                    if (!partitionMatch) {
+                        this.partitions.push(obj);
+                    }
+                }
+                console.log(
+                    `[DISK] Detected partitions: ${this.partitions.length}`
+                );
             }
-            let diskPartLine = item.replace(/\s\s+/g, " ");
-            let diskPartItems = diskPartLine.split(" ");
-            _diskPartitions.push(diskPartItems);
-        }
-        console.log(_diskPartitions);
+        };
+        this.partitionTimer = setTimeout(function repeat() {
+            _getPartitionData();
+            setTimeout(repeat, timer);
+        }, timer);
     }
 
     private initializeCPUData() {

@@ -13,3 +13,12 @@ export interface IRAMData {
     freePercentage: number;
     usedPercentage: number;
 }
+
+export interface IPartitionData {
+    label: string;
+    free: number;
+    total: number;
+    used: number;
+    freePercentage: number;
+    usedPercentage: number;
+}
