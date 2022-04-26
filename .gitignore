@@ -2,3 +2,6 @@
 .cache
 .history
 node_modules
+node/dist
+node/node_modules
+hub/server/dist
