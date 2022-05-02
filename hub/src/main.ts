@@ -13,8 +13,8 @@ const io = new Server(server, {
     cors: { origin: "*" },
 });
 
-app.get("/", (req, res) => {
-    res.sendFile(path.join(__dirname, "../../static/index.html"));
+app.get("/api", (req, res) => {
+    res.send({ test: "2k" });
 });
 
 io.on("connection", (socket) => {
