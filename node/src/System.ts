@@ -3,30 +3,33 @@
 import os from "os";
 import osUtils from "node-os-utils";
 import { ICPUData, IPartitionData, IRAMData } from "./ISystemData";
-import { TIMER } from "./SystemData";
+import { TIMER } from "./main";
 import { execSync } from "child_process";
 export class System {
-    private os: NodeJS.Platform;
+    protected os: NodeJS.Platform;
+    protected hostname: string;
     private ramTimer: NodeJS.Timer;
     private cpuTimer: NodeJS.Timer;
     private partitionTimer: NodeJS.Timer;
 
-    private cpuData: ICPUData = {
+    public initializedAllData = false;
+
+    protected cpuData: ICPUData = {
         producer: "",
         fullName: "",
         frequency: 0,
         physicalCores: 0,
         logicalCores: 0,
     };
-    private cpuUsage: number = 0;
-    private ramData: IRAMData = {
+    protected cpuUsage: number = 0;
+    protected ramData: IRAMData = {
         free: 0,
         total: 0,
         used: 0,
         freePercentage: 0,
         usedPercentage: 0,
     };
-    private partitions: IPartitionData[] = [];
+    protected partitions: IPartitionData[] = [];
 
     constructor() {
         this.initialize();
@@ -39,8 +42,12 @@ export class System {
 
     // Get initial data about CPU
     private initializeSystemData() {
+        
+        this.hostname = os.hostname();
         this.os = process.platform;
-        console.log(`Current OS: ${this.os}`);
+        
+        console.log(`Hostname: ${this.hostname}`);
+        console.log(`OS: ${this.os}`);
 
         this.initializeCPUData();
     }
@@ -90,6 +97,7 @@ export class System {
             console.log(
                 `[RAM] ${this.ramData.used}GB used of ${this.ramData.total}GB, ${this.ramData.free}GB free | ${this.ramData.usedPercentage}% used, ${this.ramData.freePercentage}% free`
             );
+
         };
 
         this.ramTimer = setTimeout(function repeat() {
@@ -161,6 +169,8 @@ export class System {
                 console.log(
                     `[DISK] Detected partitions: ${this.partitions.length}`
                 );
+
+                this.initializedAllData = true;
             }
         };
         this.partitionTimer = setTimeout(function repeat() {
@@ -205,6 +215,6 @@ export class System {
             // implement linux
         }
 
-        console.log(this.cpuData);
+        // console.log(this.cpuData);
     }
 }

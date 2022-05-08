@@ -9,8 +9,32 @@ const serverIP = `127.0.0.1`;
 const server = `http://${serverIP}:${port}`;
 const socket = io(server);
 
+export let data: SystemData;
+
+const SEND_DATA_TIMER = 2000;
+export const TIMER = 2000;
+let systemDataTimer: NodeJS.Timer;
+
 socket.on("connect", () => {
     console.log(`[CLIENT] Connected to hub at ${server}`);
+
+
+    const start = () => {
+        data = new SystemData();
+        systemDataTimer = setTimeout(function repeat() {
+            // wait for partition data to initialize before sending data
+            if (!data.initializedAllData) {
+                console.log(`[DISK] Initializing...`);
+                setTimeout(repeat, SEND_DATA_TIMER);
+                return;
+            }                            
+            socket.emit("system-data", data.generateObject(socket.id))
+            setTimeout(repeat, SEND_DATA_TIMER);
+        }, SEND_DATA_TIMER);
+    }
+
+    start();
+
 });
 
-const getData = new SystemData();
+

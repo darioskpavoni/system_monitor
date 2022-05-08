@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start-node": "nodemon ./dist/main.js"
+    "dev": "nodemon ./src/main.ts"
   },
   "keywords": [],
   "author": "",
@@ -16,6 +16,9 @@
   },
   "devDependencies": {
     "@types/node": "^17.0.27",
-    "@types/node-os-utils": "^1.2.0"
+    "@types/node-os-utils": "^1.2.0",
+    "concurrently": "^7.1.0",
+    "nodemon": "^2.0.16",
+    "ts-node": "^10.7.0"
   }
 }
