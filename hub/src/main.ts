@@ -12,7 +12,7 @@ const server = http.createServer(app);
 // const staticPath = path.join(__dirname, "..", "client", "public");
 const staticPath = path.join(__dirname, "..", "dist"); // this is good for development. serve the dist .html file transpiled by parcel
 
-let nodesData: any = {};
+let nodesData: ISystemData = {};
 
 /* Creating a socket.io server instance */
 const io = new Server(server, {
@@ -41,7 +41,7 @@ io.on("connection", (socket) => {
     })
 
     socket.on("system-data", (data: ISystemDataFields) => {
-        console.log(`[SERVER] Data coming from ${socket.id}`);
+        // console.log(`[SERVER] Data coming from ${socket.id}`);
         /* console.log(`[${data[socket.id]?.hostname}] Partitions: ${data[socket.id]?.partitions?.length ? data[socket.id]?.partitions?.length : "uninitialized"}`);
         nodeData[socket.id] = data[socket.id]; */
 
@@ -66,7 +66,5 @@ server.listen(3001, "0.0.0.0", () => {
 const updateNodesData = (data: ISystemDataFields, remoteAddress: string) => {
     const id = `${remoteAddress}_${data.hostname}`;
     nodesData[id] = data;
-
-    console.log(nodesData);
-
+    // console.log(nodesData);
 }
