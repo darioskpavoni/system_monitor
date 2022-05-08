@@ -6,34 +6,45 @@ import { ICPUData, IPartitionData, IRAMData } from "./ISystemData";
 import { TIMER } from "./main";
 import { execSync } from "child_process";
 export class System {
-    protected os: NodeJS.Platform;
-    protected hostname: string;
+    private static instance: System;
+
+    public os: NodeJS.Platform;
+    public hostname: string;
     private ramTimer: NodeJS.Timer;
     private cpuTimer: NodeJS.Timer;
     private partitionTimer: NodeJS.Timer;
 
     public initializedAllData = false;
 
-    protected cpuData: ICPUData = {
+    public cpuData: ICPUData = {
         producer: "",
         fullName: "",
         frequency: 0,
         physicalCores: 0,
         logicalCores: 0,
     };
-    protected cpuUsage: number = 0;
-    protected ramData: IRAMData = {
+    public cpuUsage: number = 0;
+    public ramData: IRAMData = {
         free: 0,
         total: 0,
         used: 0,
         freePercentage: 0,
         usedPercentage: 0,
     };
-    protected partitions: IPartitionData[] = [];
+    public partitions: IPartitionData[] = [];
 
-    constructor() {
+    private constructor() {
         this.initialize();
     }
+
+    // this class has to be a singleton
+    public static getInstance(): System {
+        if (!System.instance) {
+            System.instance = new System();
+        }
+        return System.instance;
+    }
+
 
     private initialize() {
         this.initializeSystemData();
@@ -42,10 +53,13 @@ export class System {
 
     // Get initial data about CPU
     private initializeSystemData() {
-        
-        this.hostname = os.hostname();
+
+        // check if this is an extra instance for testing
+        const extraInstance = process.argv.indexOf("-extraInstance") !== -1 ? true : false;
+
+        this.hostname = extraInstance ? "EXTRA_INSTANCE" : os.hostname();
         this.os = process.platform;
-        
+
         console.log(`Hostname: ${this.hostname}`);
         console.log(`OS: ${this.os}`);
 

@@ -1,6 +1,7 @@
 /* CLIENT SIDE */
 
 import io from "socket.io-client";
+import { System } from "./System";
 import { SystemData } from "./SystemData";
 
 // todo: read config data from file
@@ -9,7 +10,7 @@ const serverIP = `127.0.0.1`;
 const server = `http://${serverIP}:${port}`;
 const socket = io(server);
 
-export let data: SystemData;
+export let data: System;
 
 const SEND_DATA_TIMER = 2000;
 export const TIMER = 2000;
@@ -20,15 +21,15 @@ socket.on("connect", () => {
 
 
     const start = () => {
-        data = new SystemData();
+        data = System.getInstance();
         systemDataTimer = setTimeout(function repeat() {
             // wait for partition data to initialize before sending data
             if (!data.initializedAllData) {
                 console.log(`[DISK] Initializing...`);
                 setTimeout(repeat, SEND_DATA_TIMER);
                 return;
-            }                            
-            socket.emit("system-data", data.generateObject(socket.id))
+            }
+            socket.emit("system-data", SystemData.generateObject())
             setTimeout(repeat, SEND_DATA_TIMER);
         }, SEND_DATA_TIMER);
     }

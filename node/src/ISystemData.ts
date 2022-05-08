@@ -23,7 +23,7 @@ export interface IPartitionData {
     usedPercentage: number;
 }
 
-interface ISystemDataFields {
+export interface ISystemDataFields {
     os: NodeJS.Platform,
     hostname: string,
     cpuInfo: ICPUData,

@@ -1,25 +1,25 @@
 // Obtain constant flow of data about CPU, RAM and DISK from System.ts and send it to hub
 
 import { data } from "./main";
+import { ISystemDataFields } from "./ISystemData";
 import { System } from "./System";
-import { ISystemData } from "./ISystemData";
 
-export class SystemData extends System {
+export class SystemData {
+    private system: System;
+
     constructor() {
-        super();
+        this.system = System.getInstance();
         console.log("System class constructor has been called...");
     }
 
-    public generateObject(id: string): ISystemData {
+    public static generateObject(): ISystemDataFields {
         const obj = {
-            [id]: {
-                "os": data.os,
-                "hostname": data.hostname,
-                "cpuInfo": data.cpuData,
-                "cpuUsage": data.cpuUsage,
-                "ram": data.ramData,
-                "partitions": data.partitions
-            }
+            "os": data.os,
+            "hostname": data.hostname,
+            "cpuInfo": data.cpuData,
+            "cpuUsage": data.cpuUsage,
+            "ram": data.ramData,
+            "partitions": data.partitions
         };
         return obj;
     }
