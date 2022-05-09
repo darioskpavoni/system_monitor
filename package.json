@@ -4,7 +4,10 @@
     "description": "A system monitor app for Windows and Linux",
     "main": "index.js",
     "scripts": {
-        "test": "cd .."
+        "watch": "cd hub && npm run watch",
+        "devh": "cd hub && npm run dev",
+        "devn": "cd node && npm run dev",
+        "devne": "cd node && npm run extraInstance"
     },
     "repository": {
         "type": "git",

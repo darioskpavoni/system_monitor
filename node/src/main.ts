@@ -1,8 +1,10 @@
 /* CLIENT SIDE */
 
 import io from "socket.io-client";
+import dotenv from 'dotenv'
 import { System } from "./System";
 import { SystemData } from "./SystemData";
+import { Logger } from "./Logger";
 
 // todo: read config data from file
 const port = 3001;
@@ -17,6 +19,8 @@ export const TIMER = 2000;
 let systemDataTimer: NodeJS.Timer;
 let firstMessage = true;
 
+dotenv.config()
+
 socket.on("connect", () => {
     console.log(`[CLIENT] Connected to hub at ${server}`);
 
@@ -26,7 +30,7 @@ socket.on("connect", () => {
         systemDataTimer = setTimeout(function repeat() {
             // wait for partition data to initialize before sending data
             if (!data.initializedAllData) {
-                console.log(`[DISK] Initializing...`);
+                Logger.log(`[DISK] Initializing...`);
                 setTimeout(repeat, SEND_DATA_TIMER);
                 return;
             }

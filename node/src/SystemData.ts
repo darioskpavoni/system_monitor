@@ -3,13 +3,14 @@
 import { data } from "./main";
 import { ISystemDataFields } from "./ISystemData";
 import { System } from "./System";
+import { Logger } from "./Logger"
 
 export class SystemData {
     private system: System;
 
     constructor() {
         this.system = System.getInstance();
-        console.log("System class constructor has been called...");
+        Logger.log("System class constructor has been called...");
     }
 
     public static generateObject(): ISystemDataFields {

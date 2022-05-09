@@ -27,7 +27,7 @@ export interface ISystemDataFields {
     os: NodeJS.Platform,
     hostname: string,
     cpuInfo: ICPUData,
-    cpuUsage: number,
+    cpuUsage: number[],
     ram: IRAMData,
     partitions: IPartitionData[]
 }

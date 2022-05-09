@@ -5,6 +5,7 @@ import osUtils from "node-os-utils";
 import { ICPUData, IPartitionData, IRAMData } from "./ISystemData";
 import { TIMER } from "./main";
 import { execSync } from "child_process";
+import { Logger } from "./Logger";
 export class System {
     private static instance: System;
 
@@ -23,7 +24,7 @@ export class System {
         physicalCores: 0,
         logicalCores: 0,
     };
-    public cpuUsage: number = 0;
+    public cpuUsage: number[] = [];
     public ramData: IRAMData = {
         free: 0,
         total: 0,
@@ -76,8 +77,11 @@ export class System {
         const _getCPUData = () => {
             const cpu = osUtils.cpu;
             cpu.usage().then((percentage) => {
-                this.cpuUsage = percentage;
-                console.log(`[CPU] ${this.cpuUsage}%`);
+                if (this.cpuUsage.length >= 10) {
+                    this.cpuUsage.shift();
+                }
+                this.cpuUsage.push(percentage);
+                Logger.log(`[CPU] ${this.cpuUsage[this.cpuUsage.length - 1]}%; LENGTH: ${this.cpuUsage.length}`);
             });
         };
 
@@ -108,7 +112,7 @@ export class System {
                 (100 - this.ramData.freePercentage).toFixed(2)
             );
 
-            console.log(
+            Logger.log(
                 `[RAM] ${this.ramData.used}GB used of ${this.ramData.total}GB, ${this.ramData.free}GB free | ${this.ramData.usedPercentage}% used, ${this.ramData.freePercentage}% free`
             );
 
@@ -180,7 +184,7 @@ export class System {
                         this.partitions.push(obj);
                     }
                 }
-                console.log(
+                Logger.log(
                     `[DISK] Detected partitions: ${this.partitions.length}`
                 );
 
