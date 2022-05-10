@@ -2,10 +2,11 @@
 
 import os from "os";
 import osUtils from "node-os-utils";
-import { ICPUData, IPartitionData, IRAMData } from "./ISystemData";
+import { ICPUUsage, ICPUData, IPartitionData, IRAMData } from "./ISystemData";
 import { TIMER } from "./main";
 import { execSync } from "child_process";
 import { Logger } from "./Logger";
+import { Utils } from "./Utils";
 export class System {
     private static instance: System;
 
@@ -24,7 +25,7 @@ export class System {
         physicalCores: 0,
         logicalCores: 0,
     };
-    public cpuUsage: number[] = [];
+    public cpuUsage: ICPUUsage = { values: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], timestamps: ["0", "0", "0", "0", "0", "0", "0", "0", "0", "0"] };
     public ramData: IRAMData = {
         free: 0,
         total: 0,
@@ -77,11 +78,20 @@ export class System {
         const _getCPUData = () => {
             const cpu = osUtils.cpu;
             cpu.usage().then((percentage) => {
-                if (this.cpuUsage.length >= 10) {
-                    this.cpuUsage.shift();
+                if (this.cpuUsage.values.length >= 10) {
+                    this.cpuUsage.values.shift();
                 }
-                this.cpuUsage.push(percentage);
-                Logger.log(`[CPU] ${this.cpuUsage[this.cpuUsage.length - 1]}%; LENGTH: ${this.cpuUsage.length}`);
+                this.cpuUsage.values.push(percentage);
+
+                // also get a timestamp for the each value (for the label in the chart)
+                const timestamp = Utils.getTimestamp();
+                if (this.cpuUsage.timestamps.length >= 10) {
+                    this.cpuUsage.timestamps.shift();
+                }
+                this.cpuUsage.timestamps.push(timestamp);
+
+
+                Logger.log(`[CPU] ${this.cpuUsage.values[this.cpuUsage.values.length - 1]}%`);
             });
         };
 

@@ -6,6 +6,11 @@ export interface ICPUData {
     logicalCores: number;
 }
 
+export interface ICPUUsage {
+    values: number[],
+    timestamps: string[]
+}
+
 export interface IRAMData {
     free: number;
     total: number;
@@ -27,7 +32,7 @@ export interface ISystemDataFields {
     os: NodeJS.Platform,
     hostname: string,
     cpuInfo: ICPUData,
-    cpuUsage: number[],
+    cpuUsage: ICPUUsage,
     ram: IRAMData,
     partitions: IPartitionData[]
 }

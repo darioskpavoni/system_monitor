@@ -17,7 +17,6 @@ export let data: System;
 const SEND_DATA_TIMER = 2000;
 export const TIMER = 2000;
 let systemDataTimer: NodeJS.Timer;
-let firstMessage = true;
 
 dotenv.config()
 
@@ -34,12 +33,7 @@ socket.on("connect", () => {
                 setTimeout(repeat, SEND_DATA_TIMER);
                 return;
             }
-            /* if (firstMessage) {
-                socket.emit("system-data", SystemData.generateObject(), Date.now())
-                firstMessage = false;
-            } else {
-                socket.emit("system-data", SystemData.generateObject())
-            } */
+
             socket.emit("system-data", SystemData.generateObject())
             setTimeout(repeat, SEND_DATA_TIMER);
         }, SEND_DATA_TIMER);

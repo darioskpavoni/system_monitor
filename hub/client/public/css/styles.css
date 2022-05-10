@@ -66,9 +66,15 @@ body {
 }
 
 .quadrant {
+    display: flex;
+    flex-direction: column;
+
+    max-height: 96%;
     height: 96%;
+    max-width: 48.5%;
     width: 48.5%;
     border: 1px solid white;
+    background-color: white;
 }
 
 .quadrant:hover > .quadrant-header {
@@ -86,7 +92,10 @@ body {
     transition: 0.3s all ease-in-out
 }
 
-.cpuUsageGraph, .ramUsageGraph {
-    height: 100%;
-    width: 100%;
+.quadrant-content {
+    flex: 1;
+    max-width: 100%;
+    max-height: 100%;
+    box-sizing: border-box;
 }
+

@@ -1,22 +1,18 @@
-import Chart from 'chart.js/auto';
+import { DataDisplay, firstRender } from "./DataDisplay";
 import { ISystemData } from "./ISystemData";
 
-let nodesData: ISystemData = {}
 let UPDATE_TIMER = 2000;
-let activeTab: string;
+export let nodesData: ISystemData = {}
 
-let currentTabs: any = {};
+let activeTab: string;
+export let activeNode: string;
 
 const tabsContainer = document.querySelector(".tabs")! as HTMLElement;
 const systemDataContainer = document.querySelector(".systemData")! as HTMLElement;
-const cpuGraphContainer = document.querySelector(".cpuUsageGraph")! as HTMLCanvasElement;
-const memoryGraphContainer = document.querySelector(".ramUsageGraph")! as HTMLElement;
-const diskGraphContainer = document.querySelector(".diskUsageGraph")! as HTMLElement;
-const processListContainer = document.querySelector(".processList")! as HTMLElement;
-
 
 systemDataContainer.style.opacity = "0";
 
+fetch("/system-data").then(response => response.json()).then(data => nodesData = data);
 const getDataTimer = setTimeout(function repeat() {
     fetch("/system-data").then(response => response.json()).then(data => nodesData = data);
 
@@ -44,6 +40,7 @@ const getDataTimer = setTimeout(function repeat() {
                 } else {
                     // remove old systemDataContainer class
                     systemDataContainer.classList.remove(activeTab);
+
                 }
 
 
@@ -53,70 +50,28 @@ const getDataTimer = setTimeout(function repeat() {
                 systemDataContainer.classList.add(activeTab);
                 console.log(`Active tab: ${activeTab}`);
 
-                // render graphs
-                renderGraphs(node);
+                activeNode = node;
+                console.log(`Active node: ${activeNode}`);
+                document.title = `[${node}]`
+
+                DataDisplay.render();
 
             })
+
+
 
 
         }
 
     }
 
+    console.log(nodesData);
 
     setTimeout(repeat, UPDATE_TIMER);
 }, UPDATE_TIMER);
 
 
-const renderGraphs = (node: string) => {
-    console.log("RENDERING NODE");
-
-    console.log(nodesData[node].cpuUsage);
 
 
-    // replace with graph
-    const cpuChart = new Chart(cpuGraphContainer, {
-        type: 'line',
-        data: {
-            /* labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'], */
-            datasets: [{
-                label: 'Percentage',
-                data: nodesData[node].cpuUsage,
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                title: {
-                    display: true,
-                    text: 'Chart.js Line Chart - Cubic interpolation mode'
-                },
-            },
-            interaction: {
-                intersect: false,
-            },
-            scales: {
-                x: {
-                    display: true,
-                    title: {
-                        display: true
-                    }
-                },
-                y: {
-                    display: true,
-                    title: {
-                        display: true,
-                        text: 'Value'
-                    },
-                    suggestedMin: -10,
-                    suggestedMax: 200
-                }
-            }
-        },
-    });
 
-    // memoryGraphContainer
-    // diskGraphContainer
-    // processListContainer
-}
+
