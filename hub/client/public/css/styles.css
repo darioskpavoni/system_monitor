@@ -83,7 +83,7 @@ body {
 
 .quadrant-header {
     height: 2.5em;
-    background-color: white;
+    background-color: rgb(231, 231, 231);
     display: flex;
     flex-direction: row;
     align-items: center;
