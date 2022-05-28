@@ -3,9 +3,14 @@
 import express from "express";
 import http from "http";
 import path from "path";
+import cors from "cors";
+import dotenv from "dotenv";
 import { Server } from "socket.io";
 import { ISystemData, ISystemDataFields } from "./ISystemData";
-import cors from "cors";
+import { DBDriver } from "./DBDriver";
+import { EUserAuthStatus, IUserCredentials } from "./IConfig";
+
+dotenv.config()
 
 const app = express();
 const server = http.createServer(app);
@@ -20,28 +25,62 @@ const io = new Server(server, {
 });
 
 app.use(cors())
-
+app.use(express.json());
 app.use(express.static(staticPath));
+
+const db = DBDriver.getInstance();
 
 app.get('/', function (req, res) {
     res.sendFile(path.join(staticPath, "index.html"));
 });
-
 
 app.get("/system-data", (req, res) => {
     res.setHeader('Content-Type', 'application/json');
     res.json(nodesData)
 })
 
+app.post("/signup", (req, res) => {
+    // handle user signup
+    res.json("SIGNUP PAGE")
+})
+
+app.post("/login", async (req, res) => {
+    // handle user login
+    const credentials = req.body as IUserCredentials;
+    console.log(credentials);
+
+    let result!: EUserAuthStatus;
+    await db.loginUser(credentials).then(status => result = status);
+    console.log(`[AUTH] ${result}`);
+
+    // send response to client
+    switch (result) {
+        case EUserAuthStatus.SUCCESSFUL:
+            res.setHeader("Content-Type", "application/json")
+            res.status(200).send({ "message": EUserAuthStatus.SUCCESSFUL, "sessionToken": "asd" });
+            break;
+        case EUserAuthStatus.WRONG_CREDENTIALS:
+            res.setHeader("Content-Type", "application/json")
+            res.status(401).send({ "message": EUserAuthStatus.WRONG_CREDENTIALS });
+            break;
+        case EUserAuthStatus.NO_SUCH_USER:
+            res.setHeader("Content-Type", "application/json")
+            res.status(401).send({ "message": EUserAuthStatus.NO_SUCH_USER });
+            break;
+
+        default:
+            break;
+    }
+})
 
 io.on("connection", (socket) => {
-    console.log(`[SERVER] User connected ${socket.id}`);
+    console.log(`[Server] User connected ${socket.id}`);
     socket.on("hello", (data) => {
-        console.log(data);
+        console.log(`[${socket.id}] ${data}`);
     })
 
     socket.on("system-data", (data: ISystemDataFields) => {
-        // console.log(`[SERVER] Data coming from ${socket.id}`);
+        // console.log(`[Server] Data coming from ${socket.id}`);
         /* console.log(`[${data[socket.id]?.hostname}] Partitions: ${data[socket.id]?.partitions?.length ? data[socket.id]?.partitions?.length : "uninitialized"}`);
         nodeData[socket.id] = data[socket.id]; */
 
@@ -50,7 +89,7 @@ io.on("connection", (socket) => {
     })
 
     socket.on("disconnect", () => {
-        console.log(`[SERVER] User ${socket.id} disconnected`);
+        console.log(`[Server] User ${socket.id} disconnected`);
 
         /* if (nodeData[socket.id]) {
             delete nodeData[socket.id];
@@ -60,7 +99,7 @@ io.on("connection", (socket) => {
 });
 
 server.listen(3001, "0.0.0.0", () => {
-    console.log("Listening to port: 3001");
+    console.log("[Server] Listening to port: 3001");
 });
 
 const updateNodesData = (data: ISystemDataFields, remoteAddress: string) => {

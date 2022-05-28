@@ -1,7 +1,10 @@
-import { DataDisplay, firstRender } from "./DataDisplay";
+
+import { DataDisplay } from "./DataDisplay";
 import { ISystemData } from "./ISystemData";
 
-let UPDATE_TIMER = 2000;
+checkSessionToken();
+
+let updateTimer = 2000;
 export let nodesData: ISystemData = {}
 
 let activeTab: string;
@@ -9,7 +12,6 @@ export let activeNode: string;
 
 const tabsContainer = document.querySelector(".tabs")! as HTMLElement;
 const systemDataContainer = document.querySelector(".systemData")! as HTMLElement;
-
 systemDataContainer.style.opacity = "0";
 
 fetch("/system-data").then(response => response.json()).then(data => nodesData = data);
@@ -57,21 +59,18 @@ const getDataTimer = setTimeout(function repeat() {
                 DataDisplay.render();
 
             })
-
-
-
-
         }
-
     }
 
     console.log(nodesData);
 
-    setTimeout(repeat, UPDATE_TIMER);
-}, UPDATE_TIMER);
+    setTimeout(repeat, updateTimer);
+}, updateTimer);
 
 
-
-
-
-
+function checkSessionToken() {
+    // if there is no session token in session storage, redirect to login page
+    /* if (window.sessionStorage.getItem("sessionToken") === null) {
+        window.location.replace("/login.html")
+    } */
+}
