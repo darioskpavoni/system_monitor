@@ -9,7 +9,7 @@ import { Server } from "socket.io";
 import { ISystemData, ISystemDataFields } from "./ISystemData";
 import { DBDriver } from "./DBDriver";
 import { EUserAuthStatus, EUserSignupStatus, IUserCredentials } from "./IConfig";
-import { SessionToken } from "./sessionToken";
+import { SessionToken } from "./SessionToken";
 
 dotenv.config()
 
@@ -83,9 +83,9 @@ app.post("/signup", async (req, res) => {
             res.setHeader("Content-Type", "application/json")
             res.status(200).send({ "message": EUserSignupStatus.SUCCESSFUL, "sessionToken": SessionToken.generate(12) });
             break;
-        case EUserSignupStatus.EMAIL_ALREADY_EXISTS:
+        case EUserSignupStatus.USER_ALREADY_EXISTS:
             res.setHeader("Content-Type", "application/json")
-            res.send({ "message": EUserSignupStatus.EMAIL_ALREADY_EXISTS });
+            res.send({ "message": EUserSignupStatus.USER_ALREADY_EXISTS });
             break;
 
         default:

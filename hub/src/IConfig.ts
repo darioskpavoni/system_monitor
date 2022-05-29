@@ -21,6 +21,6 @@ export enum EUserAuthStatus {
 
 export enum EUserSignupStatus {
     SUCCESSFUL = "Successful registration",
-    EMAIL_ALREADY_EXISTS = "Email is already linked to an account",
+    USER_ALREADY_EXISTS = "User with these credentials already exists",
     ERROR = "Error during signup"
 }

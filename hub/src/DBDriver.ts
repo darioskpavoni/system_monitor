@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import sqlite3 from "sqlite3";
+import bcrypt from "bcrypt";
 import { EDBEvents, TDBResults, IUserCredentials, EUserAuthStatus, EUserSignupStatus } from "./IConfig";
 
 
@@ -66,40 +67,45 @@ export class DBDriver {
         return new Promise<EUserAuthStatus>(async (resolve) => {
             // check if account exists by looking at username
             this.sql = `SELECT * FROM users WHERE username='${credentials.username}'`;
-            console.log(`[DBDriver] ${this.sql}`);
             const checkAccount: TDBResults = await this.query(this.sql);
 
             // if no matches -> no such user
             if (checkAccount === EDBEvents.NO_MATCHES) {
-                resolve(EUserAuthStatus.NO_SUCH_USER)
+                return resolve(EUserAuthStatus.NO_SUCH_USER)
             }
 
             // account exists -> check the psw
-            this.sql = `SELECT * FROM users WHERE (username='${credentials.username}' AND password='${credentials.password}')`;
-            const checkPsw: TDBResults = await this.query(this.sql);
+            // we select first element because query returns a string[]. It's always going to be an array of one element
+            // because during registration phase we cannot register 2 users with the same username
+            // we use a string[] because in the future we might need to keep the possibility to query multiple records
+            let dbUserData: IUserCredentials = JSON.parse(checkAccount[0] as string);
 
-            if (checkPsw === EDBEvents.NO_MATCHES) {
+            // we use bcrypt's comparing functionality because it's safer than comparing the two strings manually
+            const match = bcrypt.compareSync(credentials.password, dbUserData.password);
+
+            if (!match) {
                 resolve(EUserAuthStatus.WRONG_CREDENTIALS)
             }
 
-            resolve(EUserAuthStatus.SUCCESSFUL);
+            return resolve(EUserAuthStatus.SUCCESSFUL);
         })
 
     }
 
     public async registerUser(credentials: IUserCredentials): Promise<EUserSignupStatus> {
-        return new Promise<EUserSignupStatus>(async (resolve) => {
-            // check if account exists by looking at email
-            this.sql = `SELECT * FROM users WHERE email='${credentials.email}'`;
+        return new Promise<EUserSignupStatus>(async (resolve, reject) => {
+            // check if account exists by looking at email AND username (we don't want users with same email or username)
+            this.sql = `SELECT * FROM users WHERE (email='${credentials.email}' OR username='${credentials.username}')`;
             const checkAccount: TDBResults = await this.query(this.sql);
 
             // if there are matches -> account cannot be created
             if (checkAccount !== EDBEvents.NO_MATCHES) {
-                resolve(EUserSignupStatus.EMAIL_ALREADY_EXISTS);
+                resolve(EUserSignupStatus.USER_ALREADY_EXISTS);
             }
 
             // there are no matches -> account can be created
-            this.sql = `INSERT INTO users (username, email, password) VALUES ('${credentials.username}','${credentials.email}','${credentials.password}')`;
+            const hashedPsw = await this.hashPsw(credentials.password).catch(err => reject(err));
+            this.sql = `INSERT INTO users (username, email, password) VALUES ('${credentials.username}','${credentials.email}','${hashedPsw}')`;
             const addAccount: EDBEvents = await this.run(this.sql);
 
             if (addAccount === EDBEvents.COMMAND_EXECUTED_SUCCESSFULLY) {
@@ -159,5 +165,19 @@ export class DBDriver {
 
     }
 
+    private hashPsw(psw: string) {
+        return new Promise(async (resolve, reject) => {
+            try {
+                const salt = await bcrypt.genSalt();
+                const hashedPsw = await bcrypt.hash(psw, salt);
 
-}
+                return resolve(hashedPsw);
+            } catch (error) {
+                return reject(error)
+            }
+        })
+
+    }
+
+
+} 
