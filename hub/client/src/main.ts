@@ -12,10 +12,25 @@ const tabsContainer = document.querySelector(".tabs")! as HTMLElement;
 const systemDataContainer = document.querySelector(".systemData")! as HTMLElement;
 systemDataContainer.style.opacity = "0";
 
-fetch("/system-data").then(response => response.json()).then(data => nodesData = data);
+// first render has to be faster, otherwise we wait updateTimer until we can see tabs
+fetch("/system-data").then(response => response.json()).then(data => {
+    nodesData = data
+    updateTabs();
+});
 const getDataTimer = setTimeout(function repeat() {
     fetch("/system-data").then(response => response.json()).then(data => nodesData = data);
 
+    updateTabs();
+
+    if (Object.keys(nodesData).length !== 0) {
+        console.log(nodesData);
+    }
+
+    setTimeout(repeat, updateTimer);
+}, updateTimer);
+
+
+function updateTabs() {
     // add tabs for the nodes. "node" is of type IP_HOSTNAME
     for (const node in nodesData) {
         // delete all dots because they cant be in class names
@@ -59,11 +74,4 @@ const getDataTimer = setTimeout(function repeat() {
             })
         }
     }
-
-    if (Object.keys(nodesData).length !== 0) {
-        console.log(nodesData);
-    }
-
-    setTimeout(repeat, updateTimer);
-}, updateTimer);
-
+}
