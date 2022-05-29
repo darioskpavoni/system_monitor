@@ -8,7 +8,8 @@ import dotenv from "dotenv";
 import { Server } from "socket.io";
 import { ISystemData, ISystemDataFields } from "./ISystemData";
 import { DBDriver } from "./DBDriver";
-import { EUserAuthStatus, IUserCredentials } from "./IConfig";
+import { EUserAuthStatus, EUserSignupStatus, IUserCredentials } from "./IConfig";
+import { SessionToken } from "./sessionToken";
 
 dotenv.config()
 
@@ -39,15 +40,9 @@ app.get("/system-data", (req, res) => {
     res.json(nodesData)
 })
 
-app.post("/signup", (req, res) => {
-    // handle user signup
-    res.json("SIGNUP PAGE")
-})
-
 app.post("/login", async (req, res) => {
     // handle user login
     const credentials = req.body as IUserCredentials;
-    console.log(credentials);
 
     let result!: EUserAuthStatus;
     await db.loginUser(credentials).then(status => result = status);
@@ -57,7 +52,7 @@ app.post("/login", async (req, res) => {
     switch (result) {
         case EUserAuthStatus.SUCCESSFUL:
             res.setHeader("Content-Type", "application/json")
-            res.status(200).send({ "message": EUserAuthStatus.SUCCESSFUL, "sessionToken": "asd" });
+            res.status(200).send({ "message": EUserAuthStatus.SUCCESSFUL, "sessionToken": SessionToken.generate(12) });
             break;
         case EUserAuthStatus.WRONG_CREDENTIALS:
             res.setHeader("Content-Type", "application/json")
@@ -66,6 +61,31 @@ app.post("/login", async (req, res) => {
         case EUserAuthStatus.NO_SUCH_USER:
             res.setHeader("Content-Type", "application/json")
             res.status(401).send({ "message": EUserAuthStatus.NO_SUCH_USER });
+            break;
+
+        default:
+            break;
+    }
+})
+
+app.post("/signup", async (req, res) => {
+    // handle user signup
+    const credentials = req.body as IUserCredentials;
+    console.log(credentials)
+
+    let result!: EUserSignupStatus;
+    await db.registerUser(credentials).then(status => result = status);
+    console.log(`[SIGNUP] ${result}`);
+
+    // send response to client
+    switch (result) {
+        case EUserSignupStatus.SUCCESSFUL:
+            res.setHeader("Content-Type", "application/json")
+            res.status(200).send({ "message": EUserSignupStatus.SUCCESSFUL, "sessionToken": SessionToken.generate(12) });
+            break;
+        case EUserSignupStatus.EMAIL_ALREADY_EXISTS:
+            res.setHeader("Content-Type", "application/json")
+            res.send({ "message": EUserSignupStatus.EMAIL_ALREADY_EXISTS });
             break;
 
         default:

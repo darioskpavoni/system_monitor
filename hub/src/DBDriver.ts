@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import sqlite3 from "sqlite3";
-import { EDBEvents, TDBResults, IUserCredentials, EUserAuthStatus } from "./IConfig";
+import { EDBEvents, TDBResults, IUserCredentials, EUserAuthStatus, EUserSignupStatus } from "./IConfig";
 
 
 export class DBDriver {
@@ -62,9 +62,9 @@ export class DBDriver {
         console.log(`[DBDriver] users tbl is ready`);
     }
 
-    public async loginUser(credentials: IUserCredentials) {
+    public async loginUser(credentials: IUserCredentials): Promise<EUserAuthStatus> {
         return new Promise<EUserAuthStatus>(async (resolve) => {
-            // check if account exists by looking at email
+            // check if account exists by looking at username
             this.sql = `SELECT * FROM users WHERE username='${credentials.username}'`;
             console.log(`[DBDriver] ${this.sql}`);
             const checkAccount: TDBResults = await this.query(this.sql);
@@ -87,15 +87,49 @@ export class DBDriver {
 
     }
 
-    private run(command: string) {
+    public async registerUser(credentials: IUserCredentials): Promise<EUserSignupStatus> {
+        return new Promise<EUserSignupStatus>(async (resolve) => {
+            // check if account exists by looking at email
+            this.sql = `SELECT * FROM users WHERE email='${credentials.email}'`;
+            const checkAccount: TDBResults = await this.query(this.sql);
+
+            // if there are matches -> account cannot be created
+            if (checkAccount !== EDBEvents.NO_MATCHES) {
+                resolve(EUserSignupStatus.EMAIL_ALREADY_EXISTS);
+            }
+
+            // there are no matches -> account can be created
+            this.sql = `INSERT INTO users (username, email, password) VALUES ('${credentials.username}','${credentials.email}','${credentials.password}')`;
+            const addAccount: EDBEvents = await this.run(this.sql);
+
+            if (addAccount === EDBEvents.COMMAND_EXECUTED_SUCCESSFULLY) {
+                resolve(EUserSignupStatus.SUCCESSFUL);
+            }
+
+            if (addAccount === EDBEvents.FAILED_TO_RUN_COMMAND) {
+                resolve(EUserSignupStatus.ERROR);
+            }
+
+            resolve(EUserSignupStatus.ERROR);
+        })
+    }
+
+    private async run(command: string): Promise<EDBEvents> {
         this.loadDB();
         console.log(`[DBDriver] ${command}`);
-        this.db.run(command);
-        this.db.close();
+        return new Promise<EDBEvents>((resolve, reject) => {
+            this.db.run(command, [], (err) => {
+                if (err) return resolve(EDBEvents.FAILED_TO_RUN_COMMAND);
+                this.db.close();
+                return resolve(EDBEvents.COMMAND_EXECUTED_SUCCESSFULLY);
+            });
+        })
+
     }
 
     private async query(qry: string) {
         this.loadDB();
+        console.log(`[DBDriver] ${qry}`);
         return new Promise<TDBResults>((resolve, reject) => {
             let results: string[] = [];
 

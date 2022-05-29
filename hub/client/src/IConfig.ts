@@ -11,8 +11,13 @@ export interface IUserCredentials {
     password: string;
 }
 
-export enum UserAuthStatus {
+export enum EUserAuthStatus {
     SUCCESSFUL = "Successful",
     WRONG_CREDENTIALS = "Wrong credentials",
     NO_SUCH_USER = "No such user"
+}
+
+export enum EUserSignupStatus {
+    SUCCESSFUL = "Successful registration",
+    EMAIL_ALREADY_EXISTS = "Email is already linked to an account"
 }

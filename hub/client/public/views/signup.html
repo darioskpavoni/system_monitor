@@ -5,13 +5,13 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Log In</title>
+    <title>Sign Up</title>
     <link rel="shortcut icon" type="image/svg" href="../icon/icon.svg" />
     <link rel="stylesheet" href="../css/reset.css">
     <link rel="stylesheet" href="../css/styles.css">
     <link rel="stylesheet" href="../css/login_signup.css">
     <script src="../../src/checkToken.ts"></script>
-    <script src="../../src/login.ts" defer></script>
+    <script src="../../src/signup.ts" defer></script>
 </head>
 
 <body>
@@ -20,16 +20,20 @@
             <div class="input-container-text">Username</div>
             <input type="text" id="input-username" placeholder="Your username">
         </div>
+        <div class="input-container email-container">
+            <div class="input-container-text">Email</div>
+            <input type="text" id="input-email" placeholder="Your email">
+        </div>
         <div class="input-container password-container">
             <div class="input-container-text">Password</div>
             <input type="password" id="input-psw" placeholder="Your password">
         </div>
 
-        <div class="btn">Log In</div>
+        <div class="btn">Sign Up</div>
 
         <div class="link-container">
-            <p>Don't have an account?</p>
-            <p><a class="link" href="signup.html">Sign up here</a></p>
+            <p>Do you have an account?</p>
+            <p><a class="link" href="login.html">Log in here</a></p>
         </div>
     </div>
 </body>
