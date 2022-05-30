@@ -22,25 +22,20 @@ dotenv.config()
 
 socket.on("connect", () => {
     console.log(`[CLIENT] Connected to hub at ${server}`);
-
-
-    const start = () => {
-        data = System.getInstance();
-        systemDataTimer = setTimeout(function repeat() {
-            // wait for partition data to initialize before sending data
-            if (!data.initializedAllData) {
-                Logger.log(`[DISK] Initializing...`);
-                setTimeout(repeat, SEND_DATA_TIMER);
-                return;
-            }
-
-            socket.emit("system-data", SystemData.generateObject())
-            setTimeout(repeat, SEND_DATA_TIMER);
-        }, SEND_DATA_TIMER);
-    }
-
     start();
-
 });
 
+function start() {
+    data = System.getInstance();
+    systemDataTimer = setTimeout(function repeat() {
+        // wait for partition data to initialize before sending data
+        if (!data.initializedAllData) {
+            Logger.log(`[DISK] Initializing...`);
+            setTimeout(repeat, SEND_DATA_TIMER);
+            return;
+        }
 
+        socket.emit("system-data", SystemData.generateObject())
+        setTimeout(repeat, SEND_DATA_TIMER);
+    }, SEND_DATA_TIMER);
+}

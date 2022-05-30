@@ -11,15 +11,16 @@ export interface ICPUUsage {
     timestamps: string[]
 }
 
-export interface IRAMData {
-    free: number;
-    total: number;
-    used: number;
-    freePercentage: number;
-    usedPercentage: number;
+export interface IRAMUsage {
+    free: number[];
+    total: number[];
+    used: number[];
+    freePercentage: number[];
+    usedPercentage: number[];
+    timestamps: string[];
 }
 
-export interface IPartitionData {
+export interface IPartitionUsage {
     label: string;
     free: number;
     total: number;
@@ -33,8 +34,8 @@ export interface ISystemDataFields {
     hostname: string,
     cpuInfo: ICPUData,
     cpuUsage: ICPUUsage,
-    ram: IRAMData,
-    partitions: IPartitionData[]
+    ram: IRAMUsage,
+    partitions: IPartitionUsage[]
 }
 export interface ISystemData {
     [key: string]: ISystemDataFields;

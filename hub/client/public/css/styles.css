@@ -86,10 +86,11 @@ body {
     background-color: rgb(231, 231, 231);
     display: flex;
     flex-direction: row;
+    justify-content: space-between;
     align-items: center;
-    padding-left: 1em;
+    padding: 0 1em;
     font-weight: 600;
-    transition: 0.3s all ease-in-out
+    transition: 0.3s all ease-in-out;
 }
 
 .quadrant-content {

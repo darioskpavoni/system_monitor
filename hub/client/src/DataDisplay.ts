@@ -8,6 +8,9 @@ const memoryGraphContainer = document.querySelector(".ramUsageGraph")! as HTMLCa
 const diskGraphContainer = document.querySelector(".diskUsageGraph")! as HTMLElement;
 const processListContainer = document.querySelector(".processList")! as HTMLElement;
 
+const cpuModelContainer = document.querySelector(".cpuModel")! as HTMLParagraphElement;
+const ramUsageGBContainer = document.querySelector(".memoryUsageGB")! as HTMLParagraphElement;
+
 let cpuChart: Chart;
 let memChart: Chart;
 let renderTimer: NodeJS.Timer;
@@ -21,18 +24,31 @@ export class DataDisplay {
         firstRender = false;
         renderTimer = setTimeout(function repeat() {
             if (activeNode !== undefined) {
-                console.log("Rerendered...");
+                // console.log("Rerendered...");
                 DataDisplay.renderGraphs(activeNode);
             }
             setTimeout(repeat, 2000)
         }, 2000);
+
     }
 
 
-    public static renderGraphs(node: string) {
+    private static renderGraphs(node: string) {
+        this.renderCPUModel(node);
         this.renderCPUChart(node);
-        // this.renderRAMChart(node);
+        this.renderRAMChart(node);
+        this.renderRAMUsageGB(node);
     }
+
+
+    private static renderCPUModel(node: string) {
+        cpuModelContainer.innerText = `${nodesData[node].cpuInfo.fullName} [${nodesData[node].cpuInfo.physicalCores}C-${nodesData[node].cpuInfo.logicalCores}T] [${nodesData[node].cpuUsage.values[nodesData[node].cpuUsage.values.length - 1]}%]`;
+    }
+
+    private static renderRAMUsageGB(node: string) {
+        ramUsageGBContainer.innerText = `[${nodesData[node].ram.used[nodesData[node].ram.used.length - 1]}GB of ${nodesData[node].ram.total[nodesData[node].ram.total.length - 1]}GB]`;
+    }
+
 
     private static renderCPUChart(node: string) {
         const cpuUsage: number[] = nodesData[node].cpuUsage.values;
@@ -43,7 +59,7 @@ export class DataDisplay {
             datasets: [{
                 label: '[%]',
                 data: cpuUsage,
-                fill: false,
+                fill: true,
                 borderColor: 'rgb(75, 192, 192)',
                 tension: 0.1
             }]
@@ -69,7 +85,7 @@ export class DataDisplay {
                     }
                 },
                 responsive: true,
-                maintainAspectRatio: false
+                maintainAspectRatio: false,
             }
         };
 
@@ -81,7 +97,7 @@ export class DataDisplay {
             cpuChart.data.datasets = [{
                 label: '[%]',
                 data: cpuUsage,
-                fill: false,
+                fill: true,
                 borderColor: 'rgb(75, 192, 192)',
                 tension: 0.1
             }];
@@ -94,16 +110,15 @@ export class DataDisplay {
         /* const ramUsed: number = nodesData[node].ram.usedPercentage;
         const ramUsed: number = nodesData[node].ram.usedPercentage; */
 
-
-        const cpuUsage: number[] = nodesData[node].cpuUsage.values;
-        const cpuTimestamps: string[] = nodesData[node].cpuUsage.timestamps;
+        const ramUsage: number[] = nodesData[node].ram.usedPercentage;
+        const ramTimestamps: string[] = nodesData[node].ram.timestamps;
 
         const data = {
-            labels: cpuTimestamps,
+            labels: ramTimestamps,
             datasets: [{
                 label: '[%]',
-                data: cpuUsage,
-                fill: false,
+                data: ramUsage,
+                fill: true,
                 borderColor: 'rgb(75, 192, 192)',
                 tension: 0.1
             }]
@@ -137,11 +152,11 @@ export class DataDisplay {
         if (firstRender) {
             memChart = new Chart(memoryGraphContainer, config);
         } else {
-            memChart.data.labels = cpuTimestamps;
+            memChart.data.labels = ramTimestamps;
             memChart.data.datasets = [{
                 label: '[%]',
-                data: cpuUsage,
-                fill: false,
+                data: ramUsage,
+                fill: true,
                 borderColor: 'rgb(75, 192, 192)',
                 tension: 0.1
             }];

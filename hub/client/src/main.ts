@@ -12,7 +12,7 @@ const tabsContainer = document.querySelector(".tabs")! as HTMLElement;
 const systemDataContainer = document.querySelector(".systemData")! as HTMLElement;
 systemDataContainer.style.opacity = "0";
 
-// first render has to be faster, otherwise we wait updateTimer until we can see tabs
+// first render has to be instantaneous, otherwise we have to wait [updateTimer]ms until we can see tabs
 fetch("/system-data").then(response => response.json()).then(data => {
     nodesData = data
     updateTabs();

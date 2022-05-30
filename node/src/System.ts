@@ -2,7 +2,7 @@
 
 import os from "os";
 import osUtils from "node-os-utils";
-import { ICPUUsage, ICPUData, IPartitionData, IRAMData } from "./ISystemData";
+import { ICPUUsage, ICPUData, IPartitionUsage, IRAMUsage } from "./ISystemData";
 import { TIMER } from "./main";
 import { execSync } from "child_process";
 import { Logger } from "./Logger";
@@ -25,15 +25,19 @@ export class System {
         physicalCores: 0,
         logicalCores: 0,
     };
+
     public cpuUsage: ICPUUsage = { values: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], timestamps: ["0", "0", "0", "0", "0", "0", "0", "0", "0", "0"] };
-    public ramData: IRAMData = {
-        free: 0,
-        total: 0,
-        used: 0,
-        freePercentage: 0,
-        usedPercentage: 0,
+
+    public ramData: IRAMUsage = {
+        free: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        total: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        used: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        freePercentage: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        usedPercentage: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        timestamps: ["0", "0", "0", "0", "0", "0", "0", "0", "0", "0"]
     };
-    public partitions: IPartitionData[] = [];
+
+    public partitions: IPartitionUsage[] = [];
 
     private constructor() {
         this.initialize();
@@ -101,26 +105,47 @@ export class System {
         }, timer);
     }
 
+    private updateArray(array: number[], value: number) {
+        if (array.length >= 10) {
+            array.shift();
+        }
+        array.push(value);
+    }
+
     private getRAMData(timer?: number) {
         const _getRAMData = () => {
             // RAM values in GB
-            this.ramData.free = parseFloat(
+            const ramDataFree = parseFloat(
                 (os.freemem() / 1073741824).toFixed(2)
             );
-            this.ramData.total = parseFloat(
+            const ramDataTotal = parseFloat(
                 (os.totalmem() / 1073741824).toFixed()
             );
-            this.ramData.used = parseFloat(
-                (this.ramData.total - this.ramData.free).toFixed(2)
+            const ramDataUsed = parseFloat(
+                (ramDataTotal - ramDataFree).toFixed(2)
             );
 
             // RAM values in %
-            this.ramData.freePercentage = parseFloat(
-                ((this.ramData.free * 100) / this.ramData.total).toFixed(2)
+            const ramDataFreePercentage = parseFloat(
+                ((ramDataFree * 100) / ramDataTotal).toFixed(2)
             );
-            this.ramData.usedPercentage = parseFloat(
-                (100 - this.ramData.freePercentage).toFixed(2)
+            const ramDataUsedPercentage = parseFloat(
+                (100 - ramDataFreePercentage).toFixed(2)
             );
+
+            // push values to their arrays
+            this.updateArray(this.ramData.free, ramDataFree);
+            this.updateArray(this.ramData.total, ramDataTotal);
+            this.updateArray(this.ramData.used, ramDataUsed);
+            this.updateArray(this.ramData.freePercentage, ramDataFreePercentage);
+            this.updateArray(this.ramData.usedPercentage, ramDataUsedPercentage);
+
+            // also get a timestamp for the each value (for the label in the chart)
+            const timestamp = Utils.getTimestamp();
+            if (this.ramData.timestamps.length >= 10) {
+                this.ramData.timestamps.shift();
+            }
+            this.ramData.timestamps.push(timestamp);
 
             Logger.log(
                 `[RAM] ${this.ramData.used}GB used of ${this.ramData.total}GB, ${this.ramData.free}GB free | ${this.ramData.usedPercentage}% used, ${this.ramData.freePercentage}% free`
