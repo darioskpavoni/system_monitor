@@ -156,7 +156,7 @@ function killPID(pid: string) {
 
     return new Promise<Response>(async (resolve, reject) => {
         // send kill signal
-        await fetch("/kill", {
+        await fetch("/PID/kill", {
             method: "POST",
             headers: {
                 'Accept': 'application/json',

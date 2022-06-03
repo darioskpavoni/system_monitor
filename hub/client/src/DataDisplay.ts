@@ -16,6 +16,7 @@ const ramUsageGBContainer = document.querySelector(".memoryUsageGB")! as HTMLPar
 
 let cpuChart: Chart;
 let memChart: Chart;
+let partitionDoughnuts: Chart[] = [];
 let renderTimer: NodeJS.Timer;
 let processTimer: NodeJS.Timer;
 
@@ -25,6 +26,7 @@ const PROCESS_RENDER_TIMER = 10000;
 
 export class DataDisplay {
     private static processList: IProcess[];
+    // could be used to only render diffs instead of whole list
     private static previousProcessList: IProcess[];
 
     public static render() {
@@ -57,6 +59,7 @@ export class DataDisplay {
         this.renderCPUChart(node);
         this.renderRAMChart(node);
         this.renderRAMUsageGB(node);
+        this.renderPartitionsDoughnut(node);
     }
 
 
@@ -181,6 +184,84 @@ export class DataDisplay {
             }];
             memChart.update();
         }
+    }
+
+    private static renderPartitionsDoughnut(node: string) {
+        const partitions = nodesData[node].partitions;
+        const socketId = nodesData[node].socketId;
+
+        // create canvas containers for each partition 
+        for (const index in partitions) {
+            if (document.querySelector(`.${socketId}_${index}`) === null) {
+                const canvas = document.createElement("canvas");
+                // create a class name for each partition: socket + index of partition
+                canvas.classList.add("partition");
+                canvas.classList.add(`${socketId}_${index}`);
+                diskGraphContainer.append(canvas);
+            }
+        }
+
+        // we only have used and free space to display
+        const DATA_COUNT = 2;
+
+        for (const [i, partition] of partitions.entries()) {
+
+
+            // associated canvas
+            const canvasClass = `.${socketId}_${i}`;
+            const canvas = document.querySelector(canvasClass)! as HTMLCanvasElement;
+            console.log(`Canvas ${canvasClass} for partition ${i},${partition.label}`);
+
+
+
+            const NUMBER_CFG = { count: DATA_COUNT, min: 0, max: partition.total };
+
+            // graph data
+            const data = {
+                labels: ['Used', 'Free'],
+                datasets: [
+                    {
+                        label: 'Partition usage',
+                        data: [partition.usedPercentage, partition.freePercentage],
+                        backgroundColor: ['#44adad', '#e5e5e5']
+                    }
+                ]
+            };
+
+            // graph config
+            const config: ChartConfiguration<keyof ChartTypeRegistry, number[], string> = {
+                type: 'doughnut',
+                data: data,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: `Partition ${partition.label}`
+                        }
+                    }
+                },
+            };
+
+            let partitionDoughnut: Chart;
+            if (firstRender) {
+                partitionDoughnut = new Chart(canvas, config);
+                // push to array for later update
+                partitionDoughnuts.push(partitionDoughnut);
+            } else {
+                const currentPartition = partitionDoughnuts[i] as Chart;
+                currentPartition.data = data;
+                currentPartition.update("none");
+            }
+
+        }
+
+
+
     }
 
     private static async renderProcessList(node: string) {

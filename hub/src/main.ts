@@ -138,7 +138,7 @@ io.on("connection", (socket) => {
         } */
     })
 
-    app.post("/kill", async (req, res) => {
+    app.post("/PID/kill", async (req, res) => {
         const pidObj: IPID = req.body;
 
         // add current pidObj to list of pending pids
