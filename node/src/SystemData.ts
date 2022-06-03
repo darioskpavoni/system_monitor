@@ -14,13 +14,14 @@ export class SystemData {
     }
 
     public static generateObject(): ISystemDataFields {
-        const obj = {
+        const obj: ISystemDataFields = {
             "os": data.os,
             "hostname": data.hostname,
             "cpuInfo": data.cpuData,
             "cpuUsage": data.cpuUsage,
             "ram": data.ramData,
-            "partitions": data.partitions
+            "partitions": data.partitions,
+            "processes": data.processes
         };
         return obj;
     }

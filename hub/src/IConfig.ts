@@ -24,3 +24,16 @@ export enum EUserSignupStatus {
     USER_ALREADY_EXISTS = "User with these credentials already exists",
     ERROR = "Error during signup"
 }
+
+export enum EKillPidStatus {
+    SUCCESS = "success",
+    NO_PID_INTRODUCED = "no-pid-introduced",
+    NO_SUCH_PID = "no-such-pid",
+    FAILED = "failed"
+}
+
+export interface IPID {
+    pid: string;
+    socketId?: string;
+    status?: string;
+}

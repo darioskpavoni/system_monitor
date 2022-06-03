@@ -1,5 +1,8 @@
 import Chart, { ChartConfiguration, ChartTypeRegistry } from 'chart.js/auto';
+import { IProcess } from './ISystemData';
 import { nodesData, activeNode } from "./main";
+// to fix regeneratorRuntime error (which appears when using async functions in this file, for some reason), also allows me to use got
+import 'regenerator-runtime/runtime'
 
 export let firstRender: boolean = true;
 
@@ -14,26 +17,42 @@ const ramUsageGBContainer = document.querySelector(".memoryUsageGB")! as HTMLPar
 let cpuChart: Chart;
 let memChart: Chart;
 let renderTimer: NodeJS.Timer;
+let processTimer: NodeJS.Timer;
+
+// two different timers, because process list has lots of data, making its rerender very resource-heavy
+const DATA_DISPLAY_TIMER = 2000;
+const PROCESS_RENDER_TIMER = 10000;
 
 export class DataDisplay {
+    private static processList: IProcess[];
+    private static previousProcessList: IProcess[];
 
     public static render() {
         clearTimeout(renderTimer);
-        DataDisplay.renderGraphs(activeNode);
+        DataDisplay.renderQuadrants(activeNode);
+        void DataDisplay.renderProcessList(activeNode);
         // it's not first render anymore
         firstRender = false;
         renderTimer = setTimeout(function repeat() {
             if (activeNode !== undefined) {
-                // console.log("Rerendered...");
-                DataDisplay.renderGraphs(activeNode);
+                // this re-renders every quadrant except the process one
+                DataDisplay.renderQuadrants(activeNode);
             }
-            setTimeout(repeat, 2000)
-        }, 2000);
+            setTimeout(repeat, DATA_DISPLAY_TIMER)
+        }, DATA_DISPLAY_TIMER);
+
+        // process list has a separate timer because of the big amount of data
+        processTimer = setTimeout(function repeat() {
+            if (activeNode !== undefined) {
+                void DataDisplay.renderProcessList(activeNode);
+            }
+            setTimeout(repeat, PROCESS_RENDER_TIMER)
+        }, PROCESS_RENDER_TIMER);
 
     }
 
 
-    private static renderGraphs(node: string) {
+    private static renderQuadrants(node: string) {
         this.renderCPUModel(node);
         this.renderCPUChart(node);
         this.renderRAMChart(node);
@@ -46,7 +65,7 @@ export class DataDisplay {
     }
 
     private static renderRAMUsageGB(node: string) {
-        ramUsageGBContainer.innerText = `[${nodesData[node].ram.used[nodesData[node].ram.used.length - 1]}GB of ${nodesData[node].ram.total[nodesData[node].ram.total.length - 1]}GB]`;
+        ramUsageGBContainer.innerText = `[${nodesData[node].ram.used[nodesData[node].ram.used.length - 1]}GB of ${nodesData[node].ram.total[nodesData[node].ram.total.length - 1]}GB] [${nodesData[node].ram.usedPercentage[nodesData[node].ram.usedPercentage.length - 1]}%]`;
     }
 
 
@@ -164,5 +183,24 @@ export class DataDisplay {
         }
     }
 
+    private static async renderProcessList(node: string) {
+        const newProcessList = nodesData[node].processes;
+
+        this.processList = newProcessList;
+
+        let HTML = "";
+        for (const proc of this.processList) {
+            const name = proc.name;
+            const pid = proc.pid ?? "";
+            const memUsage = proc.memUsage;
+
+            // add each process to an HTML string
+            HTML += `<div class="process"><div class="processName processInfo">${name}</div><div class="processPid processInfo">${pid}</div><div class="processMemUsage processInfo">${memUsage}MB</div></div>`;
+        }
+
+        // assign HTML to the container in one go, to avoid massive lags 
+        // previously I had tried to add to innerHTML inside the for..loop, but was too laggy
+        processListContainer.innerHTML = HTML;
+    }
 
 }

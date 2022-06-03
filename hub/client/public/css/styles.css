@@ -83,7 +83,8 @@ body {
 
 .quadrant-header {
     height: 2.5em;
-    background-color: rgb(231, 231, 231);
+    min-height: 2.5em;
+    background-color: #e7e7e7;
     display: flex;
     flex-direction: row;
     justify-content: space-between;
@@ -96,7 +97,117 @@ body {
 .quadrant-content {
     flex: 1;
     max-width: 100%;
-    max-height: 100%;
+    /* max-height: 100%; */
+    /* 24.5em allows the quadrant container to contain the processes with scroll bar, any more than that actually makes the container large */
+    max-height: 24em;
     box-sizing: border-box;
 }
 
+.processList {
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.process {
+    background-color: white;
+    margin-top: 2px;
+    width: inherit;
+    max-width: inherit;
+    height: 20px;
+    min-height: 20px;
+    padding: .5em 1em;
+
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+
+    transition: 0.15s all ease-in-out;
+}
+.process:hover {
+    background-color: #e0e0e0;
+}
+
+.processInfo {
+    /* flex: 1; */
+}
+
+.processName {
+    text-align: left;
+    flex: 2.75;    
+}
+.processPid {
+    text-align: left;
+    flex: 1;
+}
+.processMemUsage {
+    text-align: right;
+    flex: 2;
+}
+
+.processKillContainer {
+    display: flex;
+    height: 50%;
+    width: auto;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.processKillPid {
+    border: 1px solid black;
+    width: 75px;
+    text-align: center;
+    background-color: rgb(185, 185, 185);
+    margin-left: 10px;
+    margin-right: 10px;
+    transition: 0.15s all ease-in-out;
+}
+
+.processKillPid:focus, .processKillPid:active {
+    outline: none;
+    background-color: white;
+    border: 1px solid #202020;
+}
+
+.processKillIcon { 
+    height: 60%;
+    width: auto;
+}
+
+.processKillIcon:hover {
+    cursor: pointer;
+}
+
+.processKillMessage {
+    opacity: 0;
+    transition: 0.15s all ease-in-out;
+}
+
+/* custom scrollbar */
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background-color: white;;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: #44adad;
+}
+
+
+/* remove arrows from input["number"] */
+/* Chrome, Safari, Edge, Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[type=number] {
+  -moz-appearance: textfield;
+}

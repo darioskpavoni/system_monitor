@@ -5,6 +5,8 @@ import dotenv from 'dotenv'
 import { System } from "./System";
 import { SystemData } from "./SystemData";
 import { Logger } from "./Logger";
+import { Utils } from "./Utils";
+import { IPID } from "./IConfig";
 
 // todo: read config data from file
 const port = 3001;
@@ -24,6 +26,17 @@ socket.on("connect", () => {
     console.log(`[CLIENT] Connected to hub at ${server}`);
     start();
 });
+
+socket.on("killPID", async (pid: string) => {
+    console.log(`[CLIENT] Termination request for PID: ${pid}`);
+
+    const res = await Utils.killPID(pid);
+    const obj: IPID = {
+        pid: pid,
+        status: res
+    }
+    socket.emit("killPID-result", obj);
+})
 
 function start() {
     data = System.getInstance();

@@ -29,14 +29,22 @@ export interface IPartitionUsage {
     usedPercentage: number;
 }
 
+export interface IProcess {
+    name: string;
+    pid: number;
+    memUsage: number;
+}
+
 export interface ISystemDataFields {
     os: NodeJS.Platform,
     hostname: string,
     cpuInfo: ICPUData,
     cpuUsage: ICPUUsage,
     ram: IRAMUsage,
-    partitions: IPartitionUsage[]
+    partitions: IPartitionUsage[],
+    processes: IProcess[]
 }
 export interface ISystemData {
     [key: string]: ISystemDataFields;
 }
+

@@ -1,4 +1,6 @@
 import { EUserSignupStatus, IUserCredentials } from "./IConfig";
+// to fix regeneratorRuntime error (which appears when using async functions in this file, for some reason), also allows me to use got
+import 'regenerator-runtime/runtime'
 
 const username = document.querySelector("#input-username")! as HTMLInputElement;
 const email = document.querySelector("#input-email")! as HTMLInputElement;
